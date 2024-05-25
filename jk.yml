@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+
+    environment {
+        GITREPOREMOTE = "https://github.com/Aswinkks/dab-jk.git"
+        GITBRANCH     = "main"
+        DBCLIPATH     = "/usr/local/bin/"
+        BUNDLETARGET  = "dev"
+        DATABRICKS_HOST = credentials('DATABRICKS_HOST_JK')
+        DATABRICKS_TOKEN = credentials('DATABRICKS_TOKEN_JK')
+    }
+
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    git branch: "${GITBRANCH}", url: "${GITREPOREMOTE}"
+                }
+            }
+        }
+
+        stage('Databricks Configure') {
+            steps {
+                script {
+                    sh """#!/bin/bash
+                       if ! command -v databricks &>/dev/null; then
+                            echo Databricks CLI is not there
+                            curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sudo sh
+                            databricks --version
+                            python3 -m pip install setuptools
+                            export DATABRICKS_HOST=${DATABRICKS_HOST}
+                            export DATABRICKS_TOKEN=${DATABRICKS_TOKEN}
+                            databricks configure --profile  demo-dev-new
+                            cd ~
+                            sudo cat .databrickscfg
+                        else
+                            echo Databricks CLI is already installed.
+                            databricks --version
+                            python3 -m pip install setuptools
+                            export DATABRICKS_HOST=${DATABRICKS_HOST}
+                            export DATABRICKS_TOKEN=${DATABRICKS_TOKEN}
+                            databricks configure --profile demo-dev-new
+                            cd ~
+                            sudo cat .databrickscfg
+                        fi
+
+                    """
+                }
+            }
+        }
+
+        stage('Validate and Deploy Bundle') {
+            steps {
+                script {
+                    sh """#!/bin/bash
+
+                            # Function to run databricks configure in the directory containing databricks.yml
+                          process_directory() {
+                                                  local dir="$1"
+                                                  echo "Configuring Databricks in $dir"
+                                                  (cd "$dir" && databricks bundle validate -p test -t dev && databricks bundle deploy -p demo-dev-new -t dev)
+                                              }
+
+                          # Export the function so it's available to find
+                          export -f process_directory
+
+                          # Find directories containing databricks.yml and process them
+                          find . -type f -name 'databricks.yml' -execdir bash -c 'process_directory "$(pwd)"' \;
+                    """
+                }
+            }
+        }
+
+        stage('Deploy Bundle') {
+            steps {
+                script {
+                    sh """
+                        echi ==
+                    """
+                }
+            }
+        }
+    }
+}

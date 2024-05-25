@@ -19,7 +19,7 @@ setup(
     # to ensure that changes to wheel package are picked up when used on all-purpose clusters
     version=na.__version__ + "+" + datetime.datetime.utcnow().strftime("%Y%m%d.%H%M%S"),
     url="https://databricks.com",
-    author="rpadwa01@kenvue.com",
+    author="aswin.ks@sigmoidanalytics.com",
     description="wheel file based on na/src",
     packages=find_packages(where='./src'),
     package_dir={'': 'src'},

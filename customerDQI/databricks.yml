@@ -18,7 +18,7 @@ targets:
       host: https://adb-4268771966755722.2.azuredatabricks.net
       root_path: ~/project/customerDQI/
     run_as:
-      # This runs as rpadwa01@kenvue.com in production. We could also use a service principal here,
+      # This runs as aswin.ks@sigmoidanalytics.com in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
       user_name: verlona@jyotikarki99160gmail.onmicrosoft.com
 
@@ -37,10 +37,10 @@ targets:
     mode: production
     workspace:
       host: https://adb-4268771966755722.2.azuredatabricks.net/
-      # We always use /Users/rpadwa01@kenvue.com for all resources to make sure we only have a single copy.
+      # We always use /Users/aswin.ks@sigmoidanalytics.com for all resources to make sure we only have a single copy.
       # If this path results in an error, please make sure you have a recent version of the CLI installed.
-      root_path: /Users/rpadwa01@kenvue.com/.bundle/${bundle.name}/${bundle.target}
+      root_path: /Users/aswin.ks@sigmoidanalytics.com/.bundle/${bundle.name}/${bundle.target}
     run_as:
-      # This runs as rpadwa01@kenvue.com in production. We could also use a service principal here,
+      # This runs as aswin.ks@sigmoidanalytics.com in production. We could also use a service principal here,
       # see https://docs.databricks.com/dev-tools/bundles/permissions.html.
-      user_name: rpadwa01@kenvue.com
+      user_name: aswin.ks@sigmoidanalytics.com

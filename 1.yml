@@ -1,0 +1,101 @@
+// Filename: Jenkinsfile
+
+
+pipeline {
+    agent {
+        kubernetes {
+            // Rather than inline YAML, in a multibranch Pipeline you could use: yamlFile 'jenkins-pod.yaml'
+            // Or, to avoid YAML:
+            // containerTemplate {
+            //     name 'shell'
+            //     image 'ubuntu'
+            //     command 'sleep'
+            //     args 'infinity'
+            // }
+            yaml '''
+apiVersion: v1
+kind: Pod
+spec:
+  containers:
+  - name: shell
+    image: ubuntu
+    command:
+    - sleep
+    args:
+    - infinity
+'''
+            // Can also wrap individual steps:
+            // container('shell') {
+            //     sh 'hostname'
+            // }
+            defaultContainer 'shell'
+        }
+    }
+ 
+
+    environment {
+        GITREPOREMOTE = "https://sourcecode.jnj.com/scm/asx-ncoi/comx_sobg.git"
+        GITBRANCH     = "feature/dab_working"
+        // DBCLIPATH     = "/usr/local/bin/"
+        BUNDLETARGET  = "dev"
+        DATABRICKS_HOST = credentials('SA-AZR_WBT_sobg_dev_001_ADB_HOST')
+        DATABRICKS_TOKEN = credentials('SA-AZR_WBT_sobg_dev_001_ADB_TOKEN')
+    }
+ 
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                script {
+                    git branch: GITBRANCH, credentialsId: 'dab-kenvue', url: GITREPOREMOTE
+                }
+            }
+        }
+ 
+        stage('Databricks Configure') {
+            steps {
+                script {
+                    sh """#!/bin/bash
+                       if ! command -v /usr/local/bin/databricks &>/dev/null; then
+                
+                      echo Databricks CLI is not there
+                      apt update
+                      echo installing curl
+                      apt install -y curl unzip python3 python3-pip
+                      python3 -m pip install setuptools
+                      echo installed curl and unzip
+                      curl -fsSL https://raw.githubusercontent.com/databricks/setup-cli/main/install.sh | sh
+                      databricks --version
+                      databricks configure --profile  comx_sobg_dev
+                      cd ~
+                      cat .databrickscfg
+                      fi 
+                    """
+                }
+            }
+        }
+ 
+        stage('Validate Bundle') {
+            steps {
+                script {
+                    sh """
+                        cd dab_project_1
+                        databricks bundle -p comx_sobg_dev validate -t ${BUNDLETARGET}
+            
+                    """
+                }
+            }
+        }
+ 
+        stage('Deploy Bundle') {
+            steps {
+                script {
+                    sh """
+                        cd dab_project_1
+                        databricks bundle -p comx_sobg_dev deploy -t ${BUNDLETARGET}
+                    """
+                }
+            }
+        }
+    }
+}
